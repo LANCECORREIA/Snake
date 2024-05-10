@@ -5,7 +5,7 @@ from pygame.math import Vector2
 class SNAKE:
     def __init__(self):
         self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
-        self.direction = Vector2(0, 0)
+        self.direction = Vector2(1, 0)
         self.new_block = False
         self.destroy_block = False
 
@@ -134,33 +134,33 @@ class SNAKE:
         self.body = [Vector2(5, 10), Vector2(4, 10), Vector2(3, 10)]
         self.direction = Vector2(0, 0)
 
+
 questions = [
     {
         "question": "3 * 4 + 5",
         "options": {"a": "17", "b": "18", "c": "19", "d": "20"},
-        "correct_answer": "17"
+        "correct_answer": "17",
     },
     {
         "question": "10 - 2 * 3",
         "options": {"a": "4", "b": "6", "c": "8", "d": "10"},
-        "correct_answer": "4"
+        "correct_answer": "4",
     },
     {
         "question": "15 / 3 + 2",
         "options": {"a": "5", "b": "6", "c": "7", "d": "8"},
-        "correct_answer": "7"
+        "correct_answer": "7",
     },
     {
         "question": "6 * (4 - 2)",
         "options": {"a": "8", "b": "10", "c": "12", "d": "14"},
-        "correct_answer": "12"
+        "correct_answer": "12",
     },
     {
         "question": "20 / (5 - 2)",
         "options": {"a": "4", "b": "6", "c": "8", "d": "10"},
-        "correct_answer": "10"
-    }
-
+        "correct_answer": "10",
+    },
 ]
 
 
@@ -190,7 +190,7 @@ class QUESTION:
 
     def draw_options(self):
         for option in self.options:
-            print(type(option.value), "option")
+            # print(type(option.value), "option")
             option_surface = game_font.render(str(option.value), True, (56, 74, 12))
             answer_rect = pygame.Rect(
                 int(option.pos.x * cell_size),
@@ -202,20 +202,20 @@ class QUESTION:
 
     def randomize(self):
         random_question = random.choice(questions)
-      #   random_question = questions[0]
+        #   random_question = questions[0]
         # self.question = random_question["question"]
         # print(self.question)
-        self.question,options,self.correct_answer = self.generate_mcq()
+        self.question, options, self.correct_answer = self.generate_mcq()
         # self.correct_answer = random_question["correct_answer"]
         self.options = []
-        used_pos = {(0,0)}
+        used_pos = {(0, 0)}
         for option in options:
             x = y = 0
-            while (x,y) in used_pos:
-               x = random.randint(0, cell_number_x - 1)
-               y = random.randint(question_space, cell_number_y + question_space - 1)
+            while (x, y) in used_pos:
+                x = random.randint(0, cell_number_x - 1)
+                y = random.randint(question_space, cell_number_y + question_space - 1)
             # print(x,y)
-            used_pos.add((x,y))
+            used_pos.add((x, y))
             self.options.append(OPTION(option, x, y))
 
     def generate_mcq(self):
@@ -223,50 +223,52 @@ class QUESTION:
         # num_count = random.randint(2, 5)  # Generate between 2 to 5 numbers
         num_count = 2
         nums = [random.randint(1, 10) for _ in range(num_count)]
-        operators = [random.choice(['+', '-', '*']) for _ in range(num_count - 1)]
-        
+        operators = [random.choice(["+", "-", "*"]) for _ in range(num_count - 1)]
+
         # Generate the question string
         question = f"{''.join(str(num) + ' ' + op for num, op in zip(nums, operators))} {nums[-1]}"
-        
+
         # Calculate the correct answer
         answer = nums[0]
         for num, op in zip(nums[1:], operators):
-            if op == '+':
+            if op == "+":
                 answer += num
-            elif op == '-':
+            elif op == "-":
                 answer -= num
-            elif op == '*':
+            elif op == "*":
                 answer *= num
-            elif op == '/':
+            elif op == "/":
                 # Avoid division by zero and ensure integer division
                 if num == 0:
                     num = 1
                 answer /= num
-        
+
         # Generate incorrect options
         options = []
         while len(options) < 3:
             incorrect_answer = random.randint(int(answer) - 10, int(answer) + 10)
             if incorrect_answer != answer and incorrect_answer not in options:
                 options.append(incorrect_answer)
-        
+
         # Shuffle the options
         options.append(answer)
         random.shuffle(options)
-        
+
         return question, options, answer
+
 
 class MAIN:
     def __init__(self):
         self.snake = SNAKE()
         self.question = QUESTION()
-        self.timer = 10 
+        self.timer = 10
+        self.game_active = False
 
     def update(self):
         self.snake.move_snake()
         self.check_collision()
         self.check_fail()
-    
+
     def reset_timer(self):
         self.timer = 10
 
@@ -297,7 +299,9 @@ class MAIN:
         # print(self.snake.body[0].x,self.snake.body[0].y)
         if (
             not 0 <= self.snake.body[0].x < cell_number_x
-            or not question_space <= self.snake.body[0].y < cell_number_y + question_space
+            or not question_space
+            <= self.snake.body[0].y
+            < cell_number_y + question_space
         ):
             self.game_over()
 
@@ -312,6 +316,8 @@ class MAIN:
         # score_rect = score_surface.get_rect(center=(cell_number_x//2, cell_number_y//2))
         # screen.blit(score_surface, score_rect)
         self.reset_timer()
+        self.game_active = False
+        self.snake.direction = Vector2(1, 0)
 
     def draw_grass(self):
         grass_color = (167, 209, 61)
@@ -351,7 +357,7 @@ class MAIN:
         pygame.draw.rect(screen, (56, 74, 12), bg_rect, 2)
 
     def draw_timer(self):
-        ##timer color should be red 
+        ##timer color should be red
         timer_text = game_font.render(str(self.timer), True, (255, 0, 0))
         timer_x = cell_number_x * cell_size - 60
         timer_y = 40
@@ -373,7 +379,6 @@ screen = pygame.display.set_mode(
 # screen = pygame.display.set_mode(
 #     (0,0), pygame.FULLSCREEN
 # )
-print("FULLSCREEN",screen.get_size())
 clock = pygame.time.Clock()
 apple = pygame.image.load("Graphics/apple.png").convert_alpha()
 game_font = pygame.font.Font("Font/PoetsenOne-Regular.ttf", 40)
@@ -389,8 +394,7 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == SCREEN_UPDATE:
-            main_game.update()
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 if main_game.snake.direction.y != 1:
@@ -404,16 +408,31 @@ while True:
             if event.key == pygame.K_LEFT:
                 if main_game.snake.direction.x != 1:
                     main_game.snake.direction = Vector2(-1, 0)
-        if event.type == TIMER_EVENT:
-            main_game.timer -= 1
-            if main_game.timer == 0:
-                main_game.snake.remove_block()
-                main_game.question.randomize()
-                main_game.reset_timer()
-    screen.fill((175, 215, 70))
-    
-    main_game.draw_elements()
-        # Create a timer event
+            if event.key == pygame.K_SPACE and main_game.game_active == False:
+                main_game.game_active = True
+        if main_game.game_active:
+            if event.type == SCREEN_UPDATE:
+                main_game.update()
+            if event.type == TIMER_EVENT:
+                main_game.timer -= 1
+                if main_game.timer == 0:
+                    main_game.snake.remove_block()
+                    main_game.question.randomize()
+                    main_game.reset_timer()
+    if main_game.game_active:
+        screen.fill((175, 215, 70))
+
+        main_game.draw_elements()
+    else:
+        print("game inactive")
+        screen.fill((215, 215, 215))
+        game_name = game_font.render(
+            "Press space to start Snake Solve", True, (56, 74, 12)
+        )
+        game_name_rect = game_name.get_rect(
+            center=((cell_number_x * cell_size) // 2, (cell_number_y * cell_size) // 2)
+        )
+        screen.blit(game_name, game_name_rect)
 
     pygame.display.update()
     clock.tick(60)
